@@ -445,10 +445,9 @@ class RigLConstFanScheduler(RigLScheduler):
                 _min_salient_weights_per_neuron = neuron_saliency_counts[
                     min_neurons
                 ][1]
-            neurons_to_ablate = [
-                neuron_idx
-                for neuron_idx, neuron_sal in neuron_saliency_counts
-                if neuron_sal < _min_salient_weights_per_neuron
+            activation_mean = self._neuron_activation_means[layer_idx][neuron_idx]  # see next part
+            if neuron_sal < _min_salient_weights_per_neuron and activation_mean < tau:
+            neurons_to_ablate.append(neuron_idx)
             ]
             fan_in = get_fan_in_after_ablation(
                 weight_tensor=saliency_mask,
