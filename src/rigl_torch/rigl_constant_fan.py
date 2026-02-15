@@ -446,6 +446,7 @@ class RigLConstFanScheduler(RigLScheduler):
                     min_neurons
                 ][1]
             activation_mean = self._neuron_activation_means[layer_idx][neuron_idx]  # see next part
+            act_mean = activation_mean[neuron_idx]
             if neuron_sal < _min_salient_weights_per_neuron and activation_mean < tau:
             neurons_to_ablate.append(neuron_idx)
             ]
