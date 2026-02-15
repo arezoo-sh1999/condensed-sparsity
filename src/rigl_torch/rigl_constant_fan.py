@@ -100,6 +100,11 @@ class RigLConstFanScheduler(RigLScheduler):
         keep_first_layer_dense: bool = False,
         initialize_grown_weights: float = 0,
         no_ablation_module_names: Optional[List[str]] = None,
+
+        self.gamma_min = gamma_min
+        self.gamma_max = gamma_max
+        self.tau = tau
+
     ):
 
         super().__init__(
