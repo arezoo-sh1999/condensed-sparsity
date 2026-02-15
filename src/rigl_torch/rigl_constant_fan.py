@@ -420,23 +420,26 @@ class RigLConstFanScheduler(RigLScheduler):
                     reverse=True,
                 )
             ]
-            if self.min_salient_weights_per_neuron >= 1:
-                _min_salient_weights_per_neuron = (
-                    self.min_salient_weights_per_neuron
-                )
-            else:
-                if self.use_sparse_const_fan_in_for_ablation:
-                    # We will compare against the const-fan-in before ablation
-                    total_fan_in = get_fan_in_after_ablation(
-                        weight, 0, sparsity
-                    )
-                else:
-                    total_fan_in = math.prod(saliency_mask.shape[1:])
-                _min_salient_weights_per_neuron = max(
-                    [
-                        1,
-                        int(self.min_salient_weights_per_neuron * total_fan_in),
-                    ]
+            # --- Adaptive gamma for neuron ablation ---
+
+# محاسبه fan-in هر نورون
+if self.use_sparse_const_fan_in_for_ablation:
+    # fan-in قبل از ablation
+    total_fan_in = get_fan_in_after_ablation(weight, 0, sparsity)
+else:
+    total_fan_in = math.prod(saliency_mask.shape[1:])
+
+# gamma تطبیقی بر حسب زمان
+gamma_t = self.gamma_min + (self.gamma_max - self.gamma_min) * (
+    self.rigl_steps / self.T_end
+)
+
+# آستانه حداقل تعداد وزن‌های مهم برای هر نورون
+_min_salient_weights_per_neuron = max(
+    1,
+    int(gamma_t * total_fan_in),
+)
+
                 )
             if (
                 neuron_saliency_counts[min_neurons][1]
@@ -447,9 +450,19 @@ class RigLConstFanScheduler(RigLScheduler):
                 ][1]
             activation_mean = self._neuron_activation_means[layer_idx][neuron_idx]  # see next part
             act_mean = activation_mean[neuron_idx]
-            if neuron_sal < _min_salient_weights_per_neuron and activation_mean < tau:
-            neurons_to_ablate.append(neuron_idx)
-            ]
+          act = module.last_activation
+          if act is None:
+             return []
+              
+        activation_mean = self._neuron_activation_means[layer_idx][neuron_idx]  # see next part
+        act_mean = act.abs().mean(dim=0)  # برای Linear
+        
+        neurons_to_ablate = []
+        for neuron_idx, neuron_sal in neuron_saliency_counts:
+            act_mean = get_activation_mean_for_neuron(layer_idx, neuron_idx)
+            if neuron_sal < _min_salient_weights_per_neuron and act_mean < tau:
+                neurons_to_ablate.append(neuron_idx)
+                
             fan_in = get_fan_in_after_ablation(
                 weight_tensor=saliency_mask,
                 num_neurons_to_ablate=len(neurons_to_ablate),
