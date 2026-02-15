@@ -134,6 +134,7 @@ class CondensedLinearStructured(nn.Module):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         return F.linear(input, self.weight, self.bias)
+        self.last_activation = out.detach()
 
     def extra_repr(self) -> str:
         out_features, in_features = self.weight.shape
