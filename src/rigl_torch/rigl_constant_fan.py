@@ -111,6 +111,16 @@ class RigLConstFanScheduler(RigLScheduler):
         self.gamma_max = gamma_max
         self.tau = tau
         self.model = model
+        self.modules = dict(self.model.named_modules())
+
+        def _save_activation_hook(self, module, input, output):
+            module.last_activation = output.detach()
+
+        for name, module in self.modules.items():
+            if hasattr(module, "weight"):
+                module.register_forward_hook(self._save_activation_hook)
+
+
 
         
         super().__init__(
