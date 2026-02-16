@@ -470,11 +470,6 @@ for neuron_idx, neuron_sal in neuron_saliency_counts:
     ):
         neurons_to_ablate.append(neuron_idx)
   
-            fan_in = get_fan_in_after_ablation(
-                weight_tensor=saliency_mask,
-                num_neurons_to_ablate=len(neurons_to_ablate),
-                sparsity=sparsity,  # Replace with n_ones?
-            )
             if fan_in > math.prod(saliency_mask.shape[1:]):
                 self._logger.error(
                     "New algo isssue with invalid fan in for module: "
