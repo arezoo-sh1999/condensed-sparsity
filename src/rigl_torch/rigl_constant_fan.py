@@ -260,12 +260,14 @@ class RigLConstFanScheduler(RigLScheduler):
         self.dynamically_ablated_neuron_idx = []
         last_layer_idx = len(self.W) - 1
         self._min_sal_per_layer = []
+        
+        module_dict = dict(self.model.named_modules())
+        
         for idx, (w, name) in enumerate(list(zip(self.W, self.module_names))):
             print("Available module names:")
             print(dict(self.model.named_modules()).keys())
             print("Requested name:", name)
-            # module = dict(self.model.named_modules())[name]
-            module = self.modules[idx]
+            
             # if sparsity is 0%, skip
             if self.S[idx] <= 0:
                 self.dynamically_ablated_neuron_idx.append([])
@@ -318,21 +320,29 @@ class RigLConstFanScheduler(RigLScheduler):
                 and idx == last_layer_idx
                 or name in self.no_ablation_module_names
             ):  # Do not ablate last layer if no modules explicitly provided!
-                self._logger.debug(f"Skipping neuron ablation of module {name}")
+                
+                # self._logger.debug(f"Skipping neuron ablation of module {name}")
                 neurons_to_ablate = []
+
             else:
-                neurons_to_ablate = self._get_neurons_to_ablate(
-                    module=module,
-                    score_drop=score_drop,
-                    score_grow=score_grow,
-                    n_keep=n_keep,
-                    n_prune=n_prune,
-                    sparsity=self.S[idx],
-                    mask=self.backward_masks[idx],
-                    weight=self.W[idx],
-                    n_ones=n_ones,
-                    mod_name=name,
-                )
+                 if name not in module_dict:
+                    self._logger.warning(f"Module name {name} not found in model. Skipping.")
+                    neurons_to_ablate = []
+            
+                 else:
+                    module = module_dict[name]
+                    neurons_to_ablate = self._get_neurons_to_ablate(
+                        module=module,
+                        score_drop=score_drop,
+                        score_grow=score_grow,
+                        n_keep=n_keep,
+                        n_prune=n_prune,
+                         sparsity=self.S[idx],
+                        mask=self.backward_masks[idx],
+                        weight=self.W[idx],
+                        n_ones=n_ones,
+                        mod_name=name,
+                    )
             self.dynamically_ablated_neuron_idx.append(neurons_to_ablate)
             # print(f"neurons to ablate = {neurons_to_ablate}")
             # print(f"len neurons to ablate = {len(neurons_to_ablate)}")
