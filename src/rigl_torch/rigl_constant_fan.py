@@ -110,6 +110,7 @@ class RigLConstFanScheduler(RigLScheduler):
         self.gamma_min = gamma_min
         self.gamma_max = gamma_max
         self.tau = tau
+        self.model = model
 
         
         super().__init__(
@@ -260,7 +261,7 @@ class RigLConstFanScheduler(RigLScheduler):
         last_layer_idx = len(self.W) - 1
         self._min_sal_per_layer = []
         for idx, (w, name) in enumerate(list(zip(self.W, self.module_names))):
-            module = self.modules[idx]
+            module = dict(self.model.named_modules())[name]
             # if sparsity is 0%, skip
             if self.S[idx] <= 0:
                 self.dynamically_ablated_neuron_idx.append([])
