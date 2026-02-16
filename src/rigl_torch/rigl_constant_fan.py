@@ -101,16 +101,17 @@ class RigLConstFanScheduler(RigLScheduler):
         initialize_grown_weights: float = 0,
         no_ablation_module_names: Optional[List[str]] = None,
 
+        gamma_min: float = 0.05,
+        gamma_max: float = 0.4,
+        tau: float = 0.01,
+    
+    ):
+        
         self.gamma_min = gamma_min
         self.gamma_max = gamma_max
         self.tau = tau
 
-        gamma_min: float = 0.05,
-        gamma_max: float = 0.4,
-        tau: float = 0.01,
-
-    ):
-
+        
         super().__init__(
             model,
             optimizer,
@@ -135,6 +136,9 @@ class RigLConstFanScheduler(RigLScheduler):
             keep_first_layer_dense,
             initialize_grown_weights,
             no_ablation_module_names,
+            gamma_min,
+            gamma_max,
+            tau,
         )
         if not hasattr(self, "dynamically_ablated_neuron_idx"):
             # Only init if not loaded by checkpoint
