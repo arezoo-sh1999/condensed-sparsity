@@ -499,6 +499,9 @@ class RigLConstFanScheduler(RigLScheduler):
             act_mean_all = act.abs().mean(dim=0)
 
             neurons_to_ablate = []
+            
+            fan_in = math.prod(weight.shape[1:])
+            
             for neuron_idx, neuron_sal in neuron_saliency_counts:
                 activation_mean = act_mean_all[neuron_idx]
 
