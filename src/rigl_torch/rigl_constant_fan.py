@@ -105,6 +105,10 @@ class RigLConstFanScheduler(RigLScheduler):
         self.gamma_max = gamma_max
         self.tau = tau
 
+        gamma_min: float = 0.05,
+        gamma_max: float = 0.4,
+        tau: float = 0.01,
+
     ):
 
         super().__init__(
