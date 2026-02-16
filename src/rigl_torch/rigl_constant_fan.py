@@ -375,6 +375,7 @@ class RigLConstFanScheduler(RigLScheduler):
     @torch.no_grad()
     def _get_neurons_to_ablate(
         self,
+        module,
         score_drop: torch.Tensor,
         score_grow: torch.Tensor,
         n_keep: int,
