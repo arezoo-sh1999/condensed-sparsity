@@ -329,41 +329,34 @@ class RigLConstFanScheduler(RigLScheduler):
                 self.no_ablation_module_names is None
                 and idx == last_layer_idx
                 or name in self.no_ablation_module_names
-            ):  # Do not ablate last layer if no modules explicitly provided!
-                
-                # self._logger.debug(f"Skipping neuron ablation of module {name}")
+            ):
                 neurons_to_ablate = []
-
             else:
-                 if name not in module_dict:
-                    self._logger.warning(f"Module name {name} not found in model. Skipping.")
-                    neurons_to_ablate = []
-            
-                 else:
-                    # پیدا کردن ماژول واقعی با وزن
-                    module = None
-                    for m in self.model.modules():
-                        if hasattr(m, "weight") and m.weight is self.W[idx]:
-                            module = m
-                            break
+                # پیدا کردن ماژول واقعی از روی وزن
+                module = None
+                for m in self.model.modules():
+                    if hasattr(m, "weight") and m.weight is self.W[idx]:
+                        module = m
+                        break
 
-                    if module is None:
-                        self._logger.warning(f"Module not found for idx {idx}, skipping")
-                        neurons_to_ablate = []
-                        continue
-                         
-                    neurons_to_ablate = self._get_neurons_to_ablate(
-                        module=module,
-                        score_drop=score_drop,
-                        score_grow=score_grow,
-                        n_keep=n_keep,
-                        n_prune=n_prune,
-                         sparsity=self.S[idx],
-                        mask=self.backward_masks[idx],
-                        weight=self.W[idx],
-                        n_ones=n_ones,
-                        mod_name=name,
-                    )
+                if module is None:
+                    self._logger.warning(f"Module not found for idx {idx}, skipping")
+                    neurons_to_ablate = []
+                    continue
+
+                neurons_to_ablate = self._get_neurons_to_ablate(
+                    module=module,
+                    score_drop=score_drop,
+                    score_grow=score_grow,
+                    n_keep=n_keep,
+                    n_prune=n_prune,
+                    sparsity=self.S[idx],
+                    mask=self.backward_masks[idx],
+                    weight=self.W[idx],
+                    n_ones=n_ones,
+                    mod_name=name,
+                )
+
             self.dynamically_ablated_neuron_idx.append(neurons_to_ablate)
             # print(f"neurons to ablate = {neurons_to_ablate}")
             # print(f"len neurons to ablate = {len(neurons_to_ablate)}")
