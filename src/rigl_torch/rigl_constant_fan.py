@@ -340,7 +340,18 @@ class RigLConstFanScheduler(RigLScheduler):
                     neurons_to_ablate = []
             
                  else:
-                    module = module_dict[name]
+                    # پیدا کردن ماژول واقعی با وزن
+                    module = None
+                    for m in self.model.modules():
+                        if hasattr(m, "weight") and m.weight is self.W[idx]:
+                            module = m
+                            break
+
+                    if module is None:
+                        self._logger.warning(f"Module not found for idx {idx}, skipping")
+                        neurons_to_ablate = []
+                        continue
+                         
                     neurons_to_ablate = self._get_neurons_to_ablate(
                         module=module,
                         score_drop=score_drop,
