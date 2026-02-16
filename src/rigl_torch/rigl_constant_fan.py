@@ -74,6 +74,9 @@ class RigLConstFanScheduler(RigLScheduler):
         Exception: If attempting to register scheduler to a model that already
             has IndexMaskHooks registered.
     """
+    
+    def _save_activation_hook(self, module, input, output):
+        module.last_activation = output.detach()
 
     def __init__(
         self,
@@ -112,9 +115,6 @@ class RigLConstFanScheduler(RigLScheduler):
         self.tau = tau
         self.model = model
         self.modules = dict(self.model.named_modules())
-
-        def _save_activation_hook(self, module, input, output):
-            module.last_activation = output.detach()
 
         for name, module in self.modules.items():
             if hasattr(module, "weight"):
