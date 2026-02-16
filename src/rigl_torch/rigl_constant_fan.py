@@ -261,6 +261,10 @@ class RigLConstFanScheduler(RigLScheduler):
         last_layer_idx = len(self.W) - 1
         self._min_sal_per_layer = []
         for idx, (w, name) in enumerate(list(zip(self.W, self.module_names))):
+            print("Available module names:")
+            print(dict(self.model.named_modules()).keys())
+            print("Requested name:", name)
+            # module = dict(self.model.named_modules())[name]
             module = self.modules[idx]
             # if sparsity is 0%, skip
             if self.S[idx] <= 0:
