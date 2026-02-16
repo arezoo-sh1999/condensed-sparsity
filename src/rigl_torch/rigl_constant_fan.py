@@ -136,9 +136,7 @@ class RigLConstFanScheduler(RigLScheduler):
             keep_first_layer_dense,
             initialize_grown_weights,
             no_ablation_module_names,
-            gamma_min,
-            gamma_max,
-            tau,
+            
         )
         if not hasattr(self, "dynamically_ablated_neuron_idx"):
             # Only init if not loaded by checkpoint
