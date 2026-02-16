@@ -479,9 +479,10 @@ class RigLConstFanScheduler(RigLScheduler):
             )
 
             # گرفتن activation لایه
-            act = module.last_activation
+            act = getattr(module, "last_activation", None)
             if act is None:
-                return []
+              return []
+
 
             # میانگین activation هر نورون
             act_mean_all = act.abs().mean(dim=0)
