@@ -316,6 +316,7 @@ class RigLConstFanScheduler(RigLScheduler):
                 neurons_to_ablate = []
             else:
                 neurons_to_ablate = self._get_neurons_to_ablate(
+                    module=module,
                     score_drop=score_drop,
                     score_grow=score_grow,
                     n_keep=n_keep,
