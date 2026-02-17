@@ -106,7 +106,7 @@ class RigLConstFanScheduler(RigLScheduler):
 
         gamma_min: float = 0.05,
         gamma_max: float = 0.4,
-        tau: float = 0.2,
+        tau: float = 0.5,
     
     ):
         
@@ -417,47 +417,44 @@ class RigLConstFanScheduler(RigLScheduler):
         n_ones: int,
         mod_name: str,
     ) -> List[int]:
-        
-        print("DEBUG: forcing ablation in", mod_name)
-        return [0]
-        
         """Return List of neuron indices to ablate.
         Args:
             score_drop (torch.Tensor): Score for weight based magnitude pruning
-                provided by torch.abs(this_layer_weights)
-            score_grow (torch.Tensor): Score for gradient based magnitude
-                regrowth provided by torch.abs(gradient)
-            n_keep (int): Number of connections to keep during this step.
-            n_prune (int): Number of connections to prune this step.
-            sparsity (float): Sparsity target for this layer.
-            n_ones (int): Number of non zero weights this layer.
-
+            score_grow (torch.Tensor): Score for gradient based magnitude regrowth
+            n_keep (int): Number of connections to keep
+            n_prune (int): Number of connections to prune
+            sparsity (float): Sparsity target
+            n_ones (int): Number of non-zero weights
+    
         Returns:
-            List[int]: List of neuron indices that remain active.
+            List[int]: Neuron indices to ablate
         """
+    
         if self.dynamic_ablation and self.min_salient_weights_per_neuron != 0:
+    
             dense_fan_in = math.prod(weight.shape[1:])
-            # Max nnz elements, regardless of const fan in
             n_ones_max = int(mask.numel() * (1 - sparsity))
-            # Min neurons to use dense fan-in at target sparsity
             min_neurons = int(n_ones_max // dense_fan_in)
-            neurons_to_ablate: List[int] = []
+    
             saliency_mask = torch.zeros(
                 size=(score_drop.numel(),),
                 dtype=torch.bool,
                 device=score_drop.device,
             )
+    
             _, keep_idx = score_drop.flatten().sort(descending=True)
             saliency_mask[keep_idx[:n_keep]] = True
-
+    
             _, grow_idx = score_grow.flatten().sort(descending=True)
             saliency_mask[grow_idx[:n_prune]] = True
-
+    
             saliency_mask = saliency_mask.reshape(shape=score_drop.shape)
+    
             neuron_saliency_counts = {
                 neuron_idx: neuron.sum().item()
                 for neuron_idx, neuron in enumerate(saliency_mask)
             }
+    
             neuron_saliency_counts: List[Tuple[int]] = [
                 (k, v)
                 for k, v in sorted(
@@ -466,52 +463,52 @@ class RigLConstFanScheduler(RigLScheduler):
                     reverse=True,
                 )
             ]
-            # --- Adaptive gamma for neuron ablation ---
-
-            # محاسبه fan-in هر نورون
+    
+            # ---- fan-in ----
             if self.use_sparse_const_fan_in_for_ablation:
                 total_fan_in = get_fan_in_after_ablation(weight, 0, sparsity)
             else:
                 total_fan_in = math.prod(saliency_mask.shape[1:])
-
-            # gamma تطبیقی بر حسب زمان
+    
+            # ---- adaptive gamma ----
             gamma_t = self.gamma_min + (self.gamma_max - self.gamma_min) * (
                 self.rigl_steps / self.T_end
             )
-
-            # آستانه حداقل تعداد وزن‌های مهم برای هر نورون
+    
             _min_salient_weights_per_neuron = max(
                 1,
                 int(gamma_t * total_fan_in),
             )
-
-            # گرفتن activation لایه
+    
+            # ---- activation ----
             act = getattr(module, "last_activation", None)
             if act is None:
-              return []
-
-
-            # میانگین activation هر نورون
+                return []
+    
             act_mean_all = act.abs().mean(dim=0)
-
+    
             neurons_to_ablate = []
-            
+    
             fan_in = math.prod(weight.shape[1:])
-            
+    
             for neuron_idx, neuron_sal in neuron_saliency_counts:
                 activation_mean = act_mean_all[neuron_idx]
-
-                print(f"{mod_name} | neuron {neuron_idx} | sal={neuron_sal:.4f} | act={activation_mean:.4f}")
-
+    
+                print(
+                    f"{mod_name} | neuron {neuron_idx} | "
+                    f"sal={neuron_sal:.4f} | act={activation_mean:.4f}"
+                )
+    
+                # شرط اصلی ابلیشن
                 if (
                     neuron_sal < _min_salient_weights_per_neuron
-                    or activation_mean < self.tau
+                    and activation_mean < self.tau
                 ):
                     neurons_to_ablate.append(neuron_idx)
-  
+    
             if fan_in > math.prod(saliency_mask.shape[1:]):
                 self._logger.error(
-                    "New algo isssue with invalid fan in for module: "
+                    "New algo issue with invalid fan in for module: "
                     f"{mod_name}\n"
                     f"fan in = {fan_in}\n"
                     f"max fan in = {math.prod(saliency_mask.shape[1:])}\n"
@@ -522,15 +519,16 @@ class RigLConstFanScheduler(RigLScheduler):
                     f"n_ones = {n_ones} \n"
                 )
                 raise InvalidAblatedNeuronException("Invalid fan in detected!")
+    
             self._min_sal_per_layer.append(_min_salient_weights_per_neuron)
             return neurons_to_ablate
-
+    
         elif self.static_ablation:
-            return (
-                self.static_ablated_filters
-            )  # Check type -> Need to convert to list of indices
+            return self.static_ablated_filters
+    
         else:
             return []
+
 
     @torch.no_grad()
     def _get_drop_mask(
