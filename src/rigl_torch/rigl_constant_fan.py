@@ -493,16 +493,19 @@ class RigLConstFanScheduler(RigLScheduler):
     
             for neuron_idx, neuron_sal in neuron_saliency_counts:
                 activation_mean = act_mean_all[neuron_idx]
-    
+                
+                sal_val = neuron_sal if isinstance(neuron_sal, (int, float)) else neuron_sal.item()
+                act_val = activation_mean.item()
+
                 print(
                     f"{mod_name} | neuron {neuron_idx} | "
-                    f"sal={neuron_sal.item():.4f} | act={activation_mean.item():.4f}"
-                )
+                    f"sal={sal_val:.4f} | act={act_val:.4f}"
+                )        
     
                 # شرط اصلی ابلیشن
                 if (
                     neuron_sal < _min_salient_weights_per_neuron
-                    and activation_mean < self.tau
+                    or activation_mean < self.tau
                 ):
                     neurons_to_ablate.append(neuron_idx)
     
