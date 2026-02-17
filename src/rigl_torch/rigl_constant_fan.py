@@ -496,7 +496,7 @@ class RigLConstFanScheduler(RigLScheduler):
     
                 print(
                     f"{mod_name} | neuron {neuron_idx} | "
-                    f"sal={neuron_sal:.4f} | act={activation_mean:.4f}"
+                    f"sal={neuron_sal.item():.4f} | act={activation_mean.item():.4f}"
                 )
     
                 # شرط اصلی ابلیشن
