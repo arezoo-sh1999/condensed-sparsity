@@ -106,7 +106,7 @@ class RigLConstFanScheduler(RigLScheduler):
 
         gamma_min: float = 0.05,
         gamma_max: float = 0.4,
-        tau: float = 0.01,
+        tau: float = 0.2,
     
     ):
         
@@ -501,9 +501,11 @@ class RigLConstFanScheduler(RigLScheduler):
             for neuron_idx, neuron_sal in neuron_saliency_counts:
                 activation_mean = act_mean_all[neuron_idx]
 
+                print(f"{mod_name} | neuron {neuron_idx} | sal={neuron_sal:.4f} | act={activation_mean:.4f}")
+
                 if (
                     neuron_sal < _min_salient_weights_per_neuron
-                    and activation_mean < self.tau
+                    or activation_mean < self.tau
                 ):
                     neurons_to_ablate.append(neuron_idx)
   
