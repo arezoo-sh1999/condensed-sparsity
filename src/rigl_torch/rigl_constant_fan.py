@@ -527,15 +527,8 @@ class RigLConstFanScheduler(RigLScheduler):
             raise InvalidAblatedNeuronException("Invalid fan in detected!")
 
         self._min_sal_per_layer.append(_min_salient_weights_per_neuron)
-    
         return neurons_to_ablate
 
-    
-        elif self.static_ablation:
-            return self.static_ablated_filters
-    
-        else:
-            return []
 
 
     @torch.no_grad()
