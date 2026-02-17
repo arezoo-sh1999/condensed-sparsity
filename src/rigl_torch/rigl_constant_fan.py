@@ -500,13 +500,19 @@ class RigLConstFanScheduler(RigLScheduler):
                     f"sal={sal_val:.4f} | act={activation_mean:.4f}"
                 )
 
-                # شرط اصلی ابلیشن
                 if (
-                    neuron_sal < _min_salient_weights_per_neuron
+                    sal_val < _min_salient_weights_per_neuron
                     or activation_mean < self.tau
                 ):
                     neurons_to_ablate.append(neuron_idx)
-    
+
+            num_neurons = saliency_mask.shape[0]
+            if len(neurons_to_ablate) >= num_neurons:
+                best_neuron = neuron_saliency_counts[0][0]
+                neurons_to_ablate = [i for i in neurons_to_ablate if i != best_neuron]
+                print(f"WARNING: prevented full ablation in {mod_name}, kept neuron {best_neuron}")    
+
+            
             if fan_in > math.prod(saliency_mask.shape[1:]):
                 self._logger.error(
                     "New algo issue with invalid fan in for module: "
