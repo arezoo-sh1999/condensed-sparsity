@@ -492,7 +492,7 @@ class RigLConstFanScheduler(RigLScheduler):
             fan_in = math.prod(weight.shape[1:])
     
             for neuron_idx, neuron_sal in neuron_saliency_counts:
-                activation_mean = act_mean_all[neuron_idx]        
+                activation_mean = act_mean_all[neuron_idx].item()        
     
                 # شرط اصلی ابلیشن
                 if (
