@@ -417,8 +417,11 @@ class RigLConstFanScheduler(RigLScheduler):
         n_ones: int,
         mod_name: str,
     ) -> List[int]:
+        
+        print("DEBUG: forcing ablation in", mod_name)
+        return [0]
+        
         """Return List of neuron indices to ablate.
-
         Args:
             score_drop (torch.Tensor): Score for weight based magnitude pruning
                 provided by torch.abs(this_layer_weights)
