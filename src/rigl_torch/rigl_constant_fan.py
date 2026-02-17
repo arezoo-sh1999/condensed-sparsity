@@ -505,7 +505,7 @@ class RigLConstFanScheduler(RigLScheduler):
                     neuron_sal < _min_salient_weights_per_neuron
                     or activation_mean < self.tau
                 ):
-                neurons_to_ablate.append(neuron_idx)
+                    neurons_to_ablate.append(neuron_idx)
     
             if fan_in > math.prod(saliency_mask.shape[1:]):
                 self._logger.error(
