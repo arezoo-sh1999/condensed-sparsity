@@ -485,10 +485,10 @@ class RigLConstFanScheduler(RigLScheduler):
             sal_val = float(neuron_sal)
             activation_mean = float(act_mean_all[neuron_idx])
     
-            print(
-                f"{mod_name} | neuron {neuron_idx} | "
-                f"sal={sal_val:.4f} | act={activation_mean:.4f}"
-            )
+            #print(
+             #   f"{mod_name} | neuron {neuron_idx} | "
+             #      f"sal={sal_val:.4f} | act={activation_mean:.4f}"
+            #)
 
             if (
                 neuron_sal < _min_salient_weights_per_neuron
